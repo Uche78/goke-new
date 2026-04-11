@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: "/Users/uche/Desktop/Goke_new",
+  outputFileTracingRoot: path.join(__dirname),
   serverExternalPackages: ["pdfjs-dist", "cheerio"],
   images: {
     remotePatterns: [
