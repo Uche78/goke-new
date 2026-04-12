@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { anthropic, AI_MODEL, MAX_TOKENS } from "@/lib/ai/client";
 import { buildResumeExtractionPrompt } from "@/lib/ai/prompts/resume-extraction";
 import { buildCareerAnalysisPrompt } from "@/lib/ai/prompts/career-analysis";
-import { extractTextFromPDF } from "@/lib/pdf/parse-resume";
+import { extractTextFromPDF, extractTextFromDocx } from "@/lib/pdf/parse-resume";
 import { z } from "zod";
 
 const bodySchema = z.object({
@@ -44,7 +44,9 @@ export async function POST(request: Request) {
     }
 
     const buffer = await fileData.arrayBuffer();
-    resumeText = await extractTextFromPDF(buffer);
+    resumeText = resumeStoragePath.endsWith(".docx")
+      ? await extractTextFromDocx(buffer)
+      : await extractTextFromPDF(buffer);
   }
 
   if (!resumeText) {

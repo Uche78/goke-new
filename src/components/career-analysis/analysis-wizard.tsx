@@ -60,6 +60,7 @@ export function AnalysisWizard() {
         setDuplicateId(payload.existingId);
         return;
       }
+      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
       return;
     }
 

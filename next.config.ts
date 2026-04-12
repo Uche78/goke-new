@@ -3,7 +3,7 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(__dirname),
-  serverExternalPackages: ["pdfjs-dist", "cheerio"],
+  serverExternalPackages: ["pdf-parse", "mammoth", "cheerio"],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "*.supabase.co" },
