@@ -25,9 +25,14 @@ export function ResumeUploadDropzone({
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
 
+  const ACCEPTED_TYPES = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+
   const handleFile = async (file: File) => {
-    if (file.type !== "application/pdf") {
-      toast.error("Only PDF files are supported.");
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      toast.error("Only PDF or DOCX files are supported.");
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -83,7 +88,7 @@ export function ResumeUploadDropzone({
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf"
+          accept=".pdf,.docx"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -104,7 +109,7 @@ export function ResumeUploadDropzone({
               {existingFileName ? "Upload a different resume" : "Upload your resume"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              PDF only, max 5MB. Drag & drop or click to browse.
+              PDF or DOCX, max 5MB. Drag & drop or click to browse.
             </p>
           </>
         )}

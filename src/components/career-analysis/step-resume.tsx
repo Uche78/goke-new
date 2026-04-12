@@ -64,7 +64,7 @@ export function StepResume({ existingData, onNext }: Props) {
       <CardHeader>
         <CardTitle>Your Resume</CardTitle>
         <CardDescription>
-          Upload your most recent resume (PDF). This is used to power your career analysis.
+          Upload your most recent resume (PDF or DOCX). This is used to power your career analysis.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

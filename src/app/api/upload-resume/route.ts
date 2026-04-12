@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { extractTextFromPDF } from "@/lib/pdf/parse-resume";
+import { extractTextFromPDF, extractTextFromDocx } from "@/lib/pdf/parse-resume";
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ["application/pdf"];
+const ALLOWED_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -40,10 +43,14 @@ export async function POST(request: Request) {
   // Extract text
   let extractedText = "";
   try {
-    extractedText = await extractTextFromPDF(buffer);
+    if (file.type === "application/pdf") {
+      extractedText = await extractTextFromPDF(buffer);
+    } else {
+      extractedText = await extractTextFromDocx(buffer);
+    }
   } catch {
     return NextResponse.json(
-      { error: "Could not read PDF. Please ensure it is a valid PDF file." },
+      { error: "Could not read file. Please ensure it is a valid PDF or DOCX file." },
       { status: 400 }
     );
   }
