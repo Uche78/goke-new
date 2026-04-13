@@ -64,17 +64,13 @@ export function AnalysisWizard() {
       return;
     }
 
-    // Extract the analysis ID from the stream sentinel
-    const idMatch = fullText.match(/__ANALYSIS_ID__(\{[\s\S]*?\})\s*$/);
+    // Extract the analysis ID from the sentinel (sent as first chunk)
+    const idMatch = fullText.match(/__ANALYSIS_ID__(\{[\s\S]*?\})/);
     if (idMatch) {
       try {
         const payload = JSON.parse(idMatch[1]);
         if (payload.analysisId) {
           router.push(`/career-analysis/results/${payload.analysisId}`);
-          return;
-        }
-        if (payload.dbError) {
-          toast.error(`DB error: ${payload.dbError}`);
           return;
         }
       } catch { /* ignore */ }
