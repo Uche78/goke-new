@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { anthropic, AI_MODEL, MAX_TOKENS } from "@/lib/ai/client";
+import { anthropic, AI_MODEL } from "@/lib/ai/client";
 import { buildCareerPlanPrompt } from "@/lib/ai/prompts/career-plan";
 import { z } from "zod";
 import type { CareerAnalysisResult } from "@/types/ai";
@@ -70,8 +70,7 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .single();
 
-  // Use higher token limit for 6mo plans (more milestones = more tokens)
-  const planMaxTokens = timeframe === "6mo" ? 8192 : 4096;
+  const planMaxTokens = 4096;
 
   const response = await anthropic.messages.create({
     model: AI_MODEL,

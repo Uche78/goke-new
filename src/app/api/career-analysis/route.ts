@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { anthropic, AI_MODEL, MAX_TOKENS } from "@/lib/ai/client";
-import { buildResumeExtractionPrompt } from "@/lib/ai/prompts/resume-extraction";
 import { buildCareerAnalysisPrompt } from "@/lib/ai/prompts/career-analysis";
 import { extractTextFromPDF, extractTextFromDocx } from "@/lib/pdf/parse-resume";
 import { z } from "zod";
@@ -83,24 +82,8 @@ export async function POST(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Step 1: Extract structured data from resume
-    const extractionResponse = await anthropic.messages.create({
-      model: AI_MODEL,
-      max_tokens: 2048,
-      messages: [{ role: "user", content: buildResumeExtractionPrompt(resumeText) }],
-    });
-
-    const extractionText =
-      extractionResponse.content[0].type === "text"
-        ? extractionResponse.content[0].text
-        : "";
-
-    let resumeData = extractionText;
-    try {
-      JSON.parse(extractionText);
-    } catch {
-      resumeData = resumeText.slice(0, 3000);
-    }
+    // Pass resume text directly — skips a redundant extraction API call
+    const resumeData = resumeText.slice(0, 3000);
 
     // Get profile for first name
     const { data: profile } = await supabase

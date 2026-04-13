@@ -12,7 +12,7 @@ interface CareerPlanInput {
 const TIMEFRAME_CONFIG = {
   "1mo": { label: "1-month", milestones: 4, milestoneLabel: "Week 1, Week 2, Week 3, Week 4" },
   "3mo": { label: "3-month", milestones: 3, milestoneLabel: "Month 1, Month 2, Month 3" },
-  "6mo": { label: "6-month", milestones: 6, milestoneLabel: "Month 1, Month 2, Month 3, Month 4, Month 5, Month 6" },
+  "6mo": { label: "6-month", milestones: 3, milestoneLabel: "Months 1-2, Months 3-4, Months 5-6" },
 };
 
 export function buildCareerPlanPrompt(input: CareerPlanInput): string {
