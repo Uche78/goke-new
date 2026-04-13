@@ -10,14 +10,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { sendContactEmail } from "@/app/actions/contact";
 
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
   email: z.email("Please enter a valid email"),
+  reason: z.string().min(1, "Please select a reason"),
   message: z.string().min(10, "Message must be at least 10 characters"),
 });
 
 type FormData = z.infer<typeof schema>;
+
+const REASONS = [
+  { value: "support", label: "Individual Support" },
+  { value: "demo", label: "Demo Request" },
+  { value: "partnership", label: "Partnership Inquiry" },
+  { value: "other", label: "Other" },
+];
 
 export function ContactForm() {
   const [loading, setLoading] = useState(false);
@@ -31,19 +40,23 @@ export function ContactForm() {
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
-    // TODO: wire up to email service (e.g. Resend, Formspree)
-    await new Promise((r) => setTimeout(r, 1000));
-    console.log("Contact form submission:", data);
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    setSent(true);
-    setLoading(false);
+    try {
+      await sendContactEmail(data);
+      toast.success("Message sent! We'll get back to you within 24 hours.");
+      setSent(true);
+    } catch (err) {
+      console.error("Contact form error:", err);
+      toast.error("Something went wrong. Please try again or email us directly.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (sent) {
     return (
-      <div className="p-6 rounded-xl border border-border text-center space-y-2">
-        <div className="text-3xl">✅</div>
-        <p className="font-medium">Message sent!</p>
+      <div className="p-8 rounded-2xl border border-white bg-card text-center space-y-3">
+        <div className="text-4xl">✅</div>
+        <p className="font-semibold text-foreground text-lg">Message sent!</p>
         <p className="text-sm text-muted-foreground">
           We&apos;ll get back to you within 24 hours.
         </p>
@@ -52,10 +65,10 @@ export function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
-        <Input id="name" placeholder="Your name" {...register("name")} />
+        <Input id="name" placeholder="Your full name" {...register("name")} />
         {errors.name && (
           <p className="text-sm text-destructive">{errors.name.message}</p>
         )}
@@ -75,10 +88,28 @@ export function ContactForm() {
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="reason">Reason for contact</Label>
+        <select
+          id="reason"
+          {...register("reason")}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-[#487f6a]"
+          defaultValue=""
+        >
+          <option value="" disabled>Select a reason...</option>
+          {REASONS.map((r) => (
+            <option key={r.value} value={r.value}>{r.label}</option>
+          ))}
+        </select>
+        {errors.reason && (
+          <p className="text-sm text-destructive">{errors.reason.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="message">Message</Label>
         <Textarea
           id="message"
-          placeholder="How can we help?"
+          placeholder="Tell us how we can help..."
           rows={5}
           {...register("message")}
         />
@@ -87,7 +118,11 @@ export function ContactForm() {
         )}
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button
+        type="submit"
+        className="w-full"
+        disabled={loading}
+      >
         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
         Send Message
       </Button>

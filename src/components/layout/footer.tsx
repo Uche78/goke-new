@@ -4,36 +4,35 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-muted/30">
+    <footer className="bg-[#2a5144]">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="text-2xl font-bold text-primary">
+            <Link href="/" className="text-2xl font-bold text-white">
               Goke
             </Link>
-            <p className="mt-3 text-sm text-muted-foreground max-w-xs">
-              Helping new immigrants navigate the Canadian job market with
-              AI-powered career tools and personalized guidance.
+            <p className="mt-3 text-sm text-white/75 max-w-xs">
+              AI-powered career tools for professionals who are ready to stop guessing and start moving forward — wherever they are in their journey.
             </p>
           </div>
 
-          {/* Product */}
+          {/* Company */}
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3">
-              Product
+            <h3 className="text-sm font-semibold text-white mb-3">
+              Company
             </h3>
             <ul className="space-y-2">
               {[
-                { href: "/pricing", label: "Pricing" },
-                { href: "/about", label: "About Us" },
+                { href: "/about", label: "About" },
+                { href: "/partners", label: "For Organizations" },
                 { href: "/blog", label: "Blog" },
                 { href: "/contact", label: "Contact" },
               ].map((link) => (
-                <li key={link.href}>
+                <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-white/75 hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -44,7 +43,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-3">
+            <h3 className="text-sm font-semibold text-white mb-3">
               Legal
             </h3>
             <ul className="space-y-2">
@@ -55,7 +54,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    className="text-sm text-white/75 hover:text-white transition-colors"
                   >
                     {link.label}
                   </Link>
@@ -65,12 +64,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-8 pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-xs text-muted-foreground">
+        <div className="mt-8 pt-8 border-t border-white/20 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <p className="text-xs text-white/65">
             &copy; {year} Goke. All rights reserved.
           </p>
-          <p className="text-xs text-muted-foreground">
-            Built for newcomers to Canada
+          <p className="text-xs text-white/65">
+            Clarity. Direction. Results.
           </p>
         </div>
       </div>

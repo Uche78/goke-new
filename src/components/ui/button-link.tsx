@@ -11,6 +11,7 @@ interface ButtonLinkProps
   extends VariantProps<typeof buttonVariants> {
   href: string;
   className?: string;
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }
 
@@ -19,10 +20,11 @@ export function ButtonLink({
   variant,
   size,
   className,
+  style,
   children,
 }: ButtonLinkProps) {
   return (
-    <Link href={href} className={cn(buttonVariants({ variant, size }), className)}>
+    <Link href={href} className={cn(buttonVariants({ variant, size }), className)} style={style}>
       {children}
     </Link>
   );

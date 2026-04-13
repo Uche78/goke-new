@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -49,23 +50,23 @@
 }
 
 :root {
-  /* Goke brand: deep navy primary, warm green accent */
-  --background: oklch(0.99 0 0);
-  --foreground: oklch(0.13 0.02 264);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.13 0.02 264);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.13 0.02 264);
-  --primary: oklch(0.28 0.08 264);
+  /* Goke brand: warm green primary and accent */
+  --background: oklch(0.978 0.008 85);
+  --foreground: oklch(0.18 0.03 50);
+  --card: oklch(0.962 0.014 85);
+  --card-foreground: oklch(0.18 0.03 50);
+  --popover: oklch(0.962 0.014 85);
+  --popover-foreground: oklch(0.18 0.03 50);
+  --primary: oklch(0.52 0.09 162);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.96 0.01 264);
-  --secondary-foreground: oklch(0.28 0.08 264);
-  --muted: oklch(0.96 0.005 264);
-  --muted-foreground: oklch(0.52 0.03 264);
-  --accent: oklch(0.55 0.15 160);
+  --secondary: oklch(0.94 0.02 85);
+  --secondary-foreground: oklch(0.18 0.03 50);
+  --muted: oklch(0.96 0.005 85);
+  --muted-foreground: oklch(0.45 0.03 50);
+  --accent: oklch(0.52 0.09 162);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.01 264);
+  --border: oklch(1 0 0);
   --input: oklch(0.91 0.01 264);
   --ring: oklch(0.55 0.15 160);
   --chart-1: oklch(0.55 0.15 160);
@@ -127,5 +128,8 @@
   }
   html {
     @apply font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
   }
 }
