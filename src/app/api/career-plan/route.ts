@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { anthropic, AI_MODEL } from "@/lib/ai/client";
 import { buildCareerPlanPrompt } from "@/lib/ai/prompts/career-plan";
 import { z } from "zod";
@@ -14,108 +15,122 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const json = await request.json();
-  const parsed = bodySchema.safeParse(json);
-  if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
-  }
-
-  const { analysisId, pathIndex, timeframe } = parsed.data;
-
-  // Check cache
-  const { data: existing } = await supabase
-    .from("career_plans")
-    .select("id, plan_json, completed_tasks")
-    .eq("analysis_id", analysisId)
-    .eq("path_index", pathIndex)
-    .eq("timeframe", timeframe)
-    .single();
-
-  if (existing) {
-    return NextResponse.json({
-      id: existing.id,
-      plan: existing.plan_json,
-      completedTasks: existing.completed_tasks ?? [],
-    });
-  }
-
-  // Fetch the analysis
-  const { data: analysis } = await supabase
-    .from("career_analyses")
-    .select("analysis_json, resume_text, country")
-    .eq("id", analysisId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!analysis) {
-    return NextResponse.json({ error: "Analysis not found" }, { status: 404 });
-  }
-
-  const analysisData = analysis.analysis_json as CareerAnalysisResult;
-  const path = analysisData.paths?.[pathIndex];
-
-  if (!path) {
-    return NextResponse.json({ error: "Career path not found" }, { status: 404 });
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("first_name")
-    .eq("id", user.id)
-    .single();
-
-  const planMaxTokens = 4096;
-
-  const response = await anthropic.messages.create({
-    model: AI_MODEL,
-    max_tokens: planMaxTokens,
-    temperature: 0.3,
-    messages: [
-      {
-        role: "user",
-        content: buildCareerPlanPrompt({
-          firstName: profile?.first_name ?? "there",
-          pathName: path.name,
-          pathReasoning: path.reasoning,
-          timeframe,
-          country: analysis.country,
-          resumeSummary: (analysis.resume_text ?? "").slice(0, 2000),
-        }),
-      },
-    ],
-  });
-
-  const text =
-    response.content[0].type === "text" ? response.content[0].text : "{}";
-
-  let planJson = {};
   try {
-    planJson = JSON.parse(text.replace(/\u0000/g, ""));
-  } catch {
-    // Fallback: extract JSON object (handles accidental markdown fences)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        planJson = JSON.parse(
-          jsonMatch[0].replace(/\\u0000/g, "").replace(/\u0000/g, "")
-        );
-      } catch {
-        console.error("Failed to parse career plan JSON. Raw response:", text.slice(0, 200));
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const json = await request.json();
+    const parsed = bodySchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    }
+
+    const { analysisId, pathIndex, timeframe } = parsed.data;
+
+    // Check cache
+    const { data: existing } = await supabase
+      .from("career_plans")
+      .select("id, plan_json, completed_tasks")
+      .eq("analysis_id", analysisId)
+      .eq("path_index", pathIndex)
+      .eq("timeframe", timeframe)
+      .single();
+
+    if (existing) {
+      return NextResponse.json({
+        id: existing.id,
+        plan: existing.plan_json,
+        completedTasks: existing.completed_tasks ?? [],
+      });
+    }
+
+    // Fetch the analysis
+    const { data: analysis } = await supabase
+      .from("career_analyses")
+      .select("analysis_json, resume_text, country")
+      .eq("id", analysisId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (!analysis) {
+      return NextResponse.json({ error: "Analysis not found" }, { status: 404 });
+    }
+
+    const analysisData = analysis.analysis_json as CareerAnalysisResult;
+    const path = analysisData.paths?.[pathIndex];
+
+    if (!path) {
+      return NextResponse.json({ error: "Career path not found" }, { status: 404 });
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("first_name")
+      .eq("id", user.id)
+      .single();
+
+    const response = await anthropic.messages.create({
+      model: AI_MODEL,
+      max_tokens: 4096,
+      temperature: 0.3,
+      messages: [
+        {
+          role: "user",
+          content: buildCareerPlanPrompt({
+            firstName: profile?.first_name ?? "there",
+            pathName: path.name,
+            pathReasoning: path.reasoning,
+            timeframe,
+            country: analysis.country,
+            resumeSummary: (analysis.resume_text ?? "").slice(0, 2000),
+          }),
+        },
+      ],
+    });
+
+    const text =
+      response.content[0].type === "text" ? response.content[0].text : "";
+
+    if (!text) {
+      return NextResponse.json({ error: "Empty response from AI" }, { status: 500 });
+    }
+
+    let planJson: Record<string, unknown> = {};
+    try {
+      planJson = JSON.parse(text.replace(/\u0000/g, ""));
+    } catch {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          planJson = JSON.parse(
+            jsonMatch[0].replace(/\\u0000/g, "").replace(/\u0000/g, "")
+          );
+        } catch {
+          console.error("Failed to parse career plan JSON. Raw:", text.slice(0, 300));
+          return NextResponse.json({ error: "Could not parse plan response" }, { status: 500 });
+        }
+      } else {
+        console.error("No JSON found in career plan response. Raw:", text.slice(0, 300));
+        return NextResponse.json({ error: "Invalid plan response format" }, { status: 500 });
       }
     }
-  }
 
-  // Only cache if we got real content
-  const plan = planJson as { milestones?: unknown[] };
-  let insertedId: string | null = null;
-  if (plan.milestones && plan.milestones.length > 0) {
-    const { data: inserted } = await supabase
+    const milestones = planJson.milestones as unknown[] | undefined;
+    if (!milestones?.length) {
+      console.error("Plan has no milestones. planJson:", JSON.stringify(planJson).slice(0, 300));
+      return NextResponse.json({ error: "Plan generated but has no milestones" }, { status: 500 });
+    }
+
+    // Use admin client — cookie-based client can be unreliable after a long AI call
+    const adminSupabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { data: inserted, error: insertErr } = await adminSupabase
       .from("career_plans")
       .insert({
         user_id: user.id,
@@ -126,8 +141,21 @@ export async function POST(request: Request) {
       })
       .select("id")
       .single();
-    insertedId = inserted?.id ?? null;
-  }
 
-  return NextResponse.json({ id: insertedId, plan: planJson, completedTasks: [] });
+    if (insertErr) {
+      console.error("career_plans insert error:", insertErr);
+    }
+
+    return NextResponse.json({
+      id: inserted?.id ?? null,
+      plan: planJson,
+      completedTasks: [],
+    });
+  } catch (e) {
+    console.error("career-plan POST error:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
