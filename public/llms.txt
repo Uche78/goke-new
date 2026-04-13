@@ -1,0 +1,46 @@
+# Goke
+
+> AI-powered career tools for professionals navigating the Canadian job market.
+
+Goke is a career advancement platform that gives professionals a clear, personalized path forward — through AI-powered career analysis, resume optimization, career planning, and interview preparation. It is built specifically for the Canadian job market.
+
+## Who Goke is for
+
+- Professionals new to Canada looking to understand how to position themselves in the local job market
+- Job seekers who are sending applications but not getting callbacks
+- Anyone who wants a structured, personalized career plan rather than generic advice
+- Settlement agencies and employment centres that want to offer AI-powered career tools to their clients
+
+## What Goke does
+
+Goke offers four core tools:
+
+- **Career Analysis** — AI analysis of a user's background and target role, identifying strengths, gaps, and positioning in the Canadian market
+- **Resume Optimizer** — Matches a user's resume against a specific job posting and provides exact rewording and structural suggestions to pass ATS filters and impress hiring managers
+- **Career Planning** — Generates a concrete action plan with 1, 3, and 6-month milestones tailored to the user's goals
+- **Interview Prep** — Produces role-specific behavioral, situational, and technical interview questions with guided answer frameworks based on the user's actual experience
+
+## Key facts
+
+- Free to start — first career analysis is free, no credit card required
+- Pro plan available at $19/month with unlimited access to all tools
+- Goke Partners program available for settlement agencies and employment centres (white-label options, client tracking, flexible partnership models)
+- All user data is encrypted, never sold, and never used to train AI models
+
+## Content and resources
+
+Goke publishes practical career guides for professionals in Canada:
+
+- [How to Get Your First Job in Canada](https://goke.io/blog/getting-your-first-job-in-canada)
+- [How to Write a Resume That Gets Read](https://goke.io/blog/how-to-write-a-resume-that-gets-read)
+- [How to Prepare for a Job Interview in Canada](https://goke.io/blog/how-to-prepare-for-a-job-interview-in-canada)
+- [How to Build a Professional Network in Canada](https://goke.io/blog/how-to-build-a-professional-network-in-canada)
+
+## Links
+
+- Website: https://goke.io
+- Sign up: https://goke.io/signup
+- Blog: https://goke.io/blog
+- For organizations: https://goke.io/partners
+- Contact: https://goke.io/contact
+- LinkedIn: https://www.linkedin.com/company/goke-io
