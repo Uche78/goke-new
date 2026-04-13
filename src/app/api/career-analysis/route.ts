@@ -15,6 +15,8 @@ const bodySchema = z.object({
   country: z.string(),
 });
 
+export const maxDuration = 120;
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -85,12 +87,7 @@ export async function POST(request: Request) {
     const extractionResponse = await anthropic.messages.create({
       model: AI_MODEL,
       max_tokens: 2048,
-      messages: [
-        {
-          role: "user",
-          content: buildResumeExtractionPrompt(resumeText),
-        },
-      ],
+      messages: [{ role: "user", content: buildResumeExtractionPrompt(resumeText) }],
     });
 
     const extractionText =
@@ -112,33 +109,8 @@ export async function POST(request: Request) {
       .eq("id", user.id)
       .single();
 
-    // Insert the record NOW before streaming — get the ID upfront
-    // so the client can redirect even if the update step is slow
-    const { data: analysis, error: insertErr } = await adminSupabase
-      .from("career_analyses")
-      .insert({
-        user_id: user.id,
-        stage,
-        sub_stage: subStage,
-        country,
-        resume_text: resumeText.replace(/\u0000/g, "").slice(0, 10000),
-        analysis_json: {},
-      })
-      .select("id")
-      .single();
-
-    if (insertErr || !analysis) {
-      console.error("career_analyses insert error:", insertErr);
-      return NextResponse.json(
-        { error: "Failed to create analysis record" },
-        { status: 500 }
-      );
-    }
-
-    const analysisId = analysis.id;
-
-    // Step 2: Stream the career analysis
-    const stream = anthropic.messages.stream({
+    // Step 2: Generate career analysis (non-streaming — results page is server-rendered anyway)
+    const analysisResponse = await anthropic.messages.create({
       model: AI_MODEL,
       max_tokens: MAX_TOKENS,
       temperature: 0.4,
@@ -156,62 +128,53 @@ export async function POST(request: Request) {
       ],
     });
 
-    let fullText = "";
+    const fullText =
+      analysisResponse.content[0].type === "text"
+        ? analysisResponse.content[0].text
+        : "";
 
-    const readable = new ReadableStream({
-      async start(controller) {
-        // Send the ID immediately as the first chunk so client can redirect
-        controller.enqueue(
-          new TextEncoder().encode(`__ANALYSIS_ID__${JSON.stringify({ analysisId })}\n\n`)
-        );
-
-        for await (const chunk of stream) {
-          if (
-            chunk.type === "content_block_delta" &&
-            chunk.delta.type === "text_delta"
-          ) {
-            const text = chunk.delta.text;
-            fullText += text;
-            controller.enqueue(new TextEncoder().encode(text));
-          }
-        }
-
-        // Update the record with the full analysis JSON
+    // Parse analysis JSON from AI response
+    let analysisJson = {};
+    // Try direct parse first (AI should return pure JSON)
+    try {
+      analysisJson = JSON.parse(fullText.replace(/\u0000/g, ""));
+    } catch {
+      // Fallback: extract JSON object from response (handles markdown fences)
+      const jsonMatch = fullText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
         try {
-          let analysisJson = {};
-          const jsonMatch = fullText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try {
-              const sanitized = jsonMatch[0]
-                .replace(/\\u0000/g, "")
-                .replace(/\u0000/g, "");
-              analysisJson = JSON.parse(sanitized);
-            } catch { /* keep {} */ }
-          }
-
-          const { error: updateErr } = await adminSupabase
-            .from("career_analyses")
-            .update({ analysis_json: analysisJson })
-            .eq("id", analysisId);
-
-          if (updateErr) {
-            console.error("career_analyses update error:", updateErr);
-          }
-        } catch (e) {
-          console.error("Post-stream update error:", e);
+          analysisJson = JSON.parse(
+            jsonMatch[0].replace(/\\u0000/g, "").replace(/\u0000/g, "")
+          );
+        } catch {
+          console.error("Failed to parse analysis JSON, storing raw text");
         }
+      }
+    }
 
-        controller.close();
-      },
-    });
+    // Save to database
+    const { data: analysis, error: dbErr } = await adminSupabase
+      .from("career_analyses")
+      .insert({
+        user_id: user.id,
+        stage,
+        sub_stage: subStage,
+        country,
+        resume_text: resumeText.replace(/\u0000/g, "").slice(0, 10000),
+        analysis_json: analysisJson,
+      })
+      .select("id")
+      .single();
 
-    return new Response(readable, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Transfer-Encoding": "chunked",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
+    if (dbErr || !analysis) {
+      console.error("career_analyses insert error:", dbErr);
+      return NextResponse.json(
+        { error: "Failed to save analysis" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ analysisId: analysis.id });
   } catch (e) {
     console.error("career-analysis POST error:", e);
     return NextResponse.json(

@@ -10,7 +10,6 @@ import { StepResume } from "./step-resume";
 import { StepCareerStage } from "./step-career-stage";
 import { StepLocation } from "./step-location";
 import { StepReview } from "./step-review";
-import { useStreaming } from "@/hooks/use-streaming";
 
 export interface AnalysisFormData {
   resumeText?: string;
@@ -28,7 +27,7 @@ export function AnalysisWizard() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<AnalysisFormData>({});
   const [duplicateId, setDuplicateId] = useState<string | null>(null);
-  const { isStreaming, stream } = useStreaming();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -45,38 +44,42 @@ export function AnalysisWizard() {
 
   const handleSubmit = async () => {
     setDuplicateId(null);
-    let fullText: string;
+    setIsSubmitting(true);
     try {
-      fullText = await stream("/api/career-analysis", {
-        resumeText: data.resumeText,
-        resumeStoragePath: data.resumeStoragePath,
-        stage: data.stage,
-        subStage: data.subStage,
-        country: data.country,
+      const res = await fetch("/api/career-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resumeText: data.resumeText,
+          resumeStoragePath: data.resumeStoragePath,
+          stage: data.stage,
+          subStage: data.subStage,
+          country: data.country,
+        }),
       });
-    } catch (err) {
-      const payload = (err as { payload?: { error?: string; existingId?: string } }).payload;
-      if (payload?.error === "duplicate" && payload.existingId) {
-        setDuplicateId(payload.existingId);
-        return;
-      }
-      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
-      return;
-    }
 
-    // Extract the analysis ID from the sentinel (sent as first chunk)
-    const idMatch = fullText.match(/__ANALYSIS_ID__(\{[\s\S]*?\})/);
-    if (idMatch) {
-      try {
-        const payload = JSON.parse(idMatch[1]);
-        if (payload.analysisId) {
-          router.push(`/career-analysis/results/${payload.analysisId}`);
+      const payload = await res.json();
+
+      if (!res.ok) {
+        if (payload?.error === "duplicate" && payload.existingId) {
+          setDuplicateId(payload.existingId);
           return;
         }
-      } catch { /* ignore */ }
-    }
+        toast.error(payload?.error ?? "Something went wrong. Please try again.");
+        return;
+      }
 
-    toast.error("Analysis completed but could not load results. Check your history.");
+      if (payload?.analysisId) {
+        router.push(`/career-analysis/results/${payload.analysisId}`);
+        return;
+      }
+
+      toast.error("Analysis completed but could not load results. Check your history.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -137,7 +140,7 @@ export function AnalysisWizard() {
           data={data}
           onSubmit={handleSubmit}
           onBack={handleBack}
-          submitting={isStreaming}
+          submitting={isSubmitting}
         />
       )}
     </div>
