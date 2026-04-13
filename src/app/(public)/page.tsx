@@ -212,7 +212,9 @@ export default async function LandingPage() {
               <div className="flex items-center md:items-start h-full pt-0 md:pt-20 lg:pt-24">
                 <div className="max-w-xl w-full">
                   <p className="text-sm text-foreground/70 mb-2">
-                    <span className="font-semibold text-foreground">2,000+ professionals</span> have found their path with Goke
+                    <span className="font-semibold text-foreground">2,000+ professionals</span>
+                    <span className="hidden sm:inline"> have found their path with Goke</span>
+                    <span className="sm:hidden"> helped so far</span>
                   </p>
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
                     Stop Guessing.{" "}
