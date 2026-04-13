@@ -15,6 +15,7 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
+  try {
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,13 +31,14 @@ export async function POST(request: Request) {
   const { resumeStoragePath, stage, subStage, country } = parsed.data;
   let { resumeText } = parsed.data;
 
-  // If a storage path was provided, download and extract the PDF
+  // If a storage path was provided, download and extract the file
   if (resumeStoragePath && !resumeText) {
     const { data: fileData, error } = await supabase.storage
       .from("resumes")
       .download(resumeStoragePath);
 
     if (error || !fileData) {
+      console.error("Resume download error:", error);
       return NextResponse.json(
         { error: "Could not access resume file" },
         { status: 400 }
@@ -194,4 +196,11 @@ export async function POST(request: Request) {
       "X-Content-Type-Options": "nosniff",
     },
   });
+  } catch (e) {
+    console.error("career-analysis POST error:", e);
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
