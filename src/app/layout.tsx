@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Geist_Mono, Lora } from "next/font/google";
+import { Plus_Jakarta_Sans, Lora } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -15,10 +15,6 @@ const lora = Lora({
   weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -70,7 +66,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${plusJakartaSans.variable} ${lora.variable} ${geistMono.variable} antialiased min-h-screen`}
+        className={`${plusJakartaSans.variable} ${lora.variable} antialiased min-h-screen`}
         suppressHydrationWarning
       >
         {children}
