@@ -5,7 +5,7 @@ import { buildCareerPlanPrompt } from "@/lib/ai/prompts/career-plan";
 import { z } from "zod";
 import type { CareerAnalysisResult } from "@/types/ai";
 
-export const maxDuration = 300; // 5 minutes — 6-month plans can be long
+export const maxDuration = 120;
 
 const bodySchema = z.object({
   analysisId: z.uuid(),
@@ -70,9 +70,12 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .single();
 
+  // Use higher token limit for 6mo plans (more milestones = more tokens)
+  const planMaxTokens = timeframe === "6mo" ? 8192 : 4096;
+
   const response = await anthropic.messages.create({
     model: AI_MODEL,
-    max_tokens: MAX_TOKENS,
+    max_tokens: planMaxTokens,
     temperature: 0.3,
     messages: [
       {
@@ -94,15 +97,19 @@ export async function POST(request: Request) {
 
   let planJson = {};
   try {
+    planJson = JSON.parse(text.replace(/\u0000/g, ""));
+  } catch {
+    // Fallback: extract JSON object (handles accidental markdown fences)
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const sanitized = jsonMatch[0]
-        .replace(/\\u0000/g, "")
-        .replace(/\u0000/g, "");
-      planJson = JSON.parse(sanitized);
+      try {
+        planJson = JSON.parse(
+          jsonMatch[0].replace(/\\u0000/g, "").replace(/\u0000/g, "")
+        );
+      } catch {
+        console.error("Failed to parse career plan JSON. Raw response:", text.slice(0, 200));
+      }
     }
-  } catch {
-    planJson = { error: "Could not parse plan" };
   }
 
   // Only cache if we got real content
