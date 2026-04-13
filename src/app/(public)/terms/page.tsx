@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Terms of Service | Goke",
   description: "Goke Technologies terms of service — the rules and conditions that govern your use of the Goke platform.",
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/terms`,
+  },
 };
 
 export default function TermsOfServicePage() {

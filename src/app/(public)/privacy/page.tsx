@@ -3,6 +3,9 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Privacy Policy | Goke",
   description: "Goke Technologies privacy policy — how we collect, use, and protect your personal information.",
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/privacy`,
+  },
 };
 
 export default function PrivacyPolicyPage() {

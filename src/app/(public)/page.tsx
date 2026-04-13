@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { SeoSchema } from "@/components/shared/seo-schema";
 import { ButtonLink } from "@/components/ui/button-link";
+import { getAllPosts } from "@/lib/blog";
 
 export const metadata: Metadata = {
-  title: "Goke | AI-Powered Career Advancement",
+  title: "AI Career Tools for the Canadian Job Market | Goke",
   description:
-    "Goke gives you a clear, personalized path forward with AI-powered career analysis, resume optimization, and an actionable plan to get hired — wherever you are in your journey.",
+    "Goke gives you a clear, personalized path forward with AI-powered career analysis, resume optimization, and interview prep — built for professionals navigating the Canadian job market.",
   alternates: {
     canonical: process.env.NEXT_PUBLIC_SITE_URL,
   },
@@ -28,6 +30,121 @@ const organizationSchema = {
   logo: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.svg`,
   description:
     "AI-powered career tools to help professionals get clarity, optimize their resume, and land their next role.",
+  sameAs: [
+    "https://www.linkedin.com/company/goke-io",
+  ],
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "How is Goke different from just using ChatGPT or LinkedIn?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "ChatGPT gives generic advice to whoever asks. LinkedIn shows you jobs but doesn't tell you why you're not getting them. Goke is built specifically to analyse your background, identify your gaps, and give you a personalized plan — not a template. The tools work together, so your resume optimization is informed by your career analysis, which feeds into your interview prep. It's a system, not a chatbot.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does the AI work — is it personalized to me or just generic advice?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Everything Goke generates is based on what you tell us — your experience, skills, goals, and the roles you're targeting. Two people using the same tool will get completely different outputs. The more context you provide, the sharper your results.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is it really free to start — what's the catch?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No catch. You can create an account and run your first career analysis for free. Some advanced features and ongoing tools require a subscription, but you'll see exactly what's included before you're asked to pay anything.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Can I cancel anytime?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes, anytime. No contracts, no cancellation fees. If you cancel, you keep access until the end of your billing period and won't be charged again.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Will Goke guarantee I get a job?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No — and we won't pretend otherwise. Getting hired depends on many things outside our control. What Goke does is remove the guesswork, sharpen how you present yourself, and give you a clear plan to follow. The work is still yours to do — we just make sure you're doing the right work.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is my data private and secure?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. Your career information, resume, and personal details are yours. We don't sell your data, share it with employers, or use it to train AI models. All data is encrypted and stored securely. You can request deletion of your account and data at any time.",
+      },
+    },
+  ],
+};
+
+const servicesSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Goke AI Career Tools",
+  description: "AI-powered career tools built for professionals navigating the Canadian job market.",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      item: {
+        "@type": "Service",
+        name: "Career Analysis",
+        description: "AI-powered analysis of your background and target role, identifying gaps and strengths to give you a clear picture of where you stand in the Canadian job market.",
+        provider: { "@type": "Organization", name: "Goke" },
+        serviceType: "Career Counseling",
+        areaServed: "Canada",
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      item: {
+        "@type": "Service",
+        name: "Resume Optimizer",
+        description: "Optimize your resume for specific job postings — get exact rewording suggestions and structural improvements to pass ATS filters and impress hiring managers.",
+        provider: { "@type": "Organization", name: "Goke" },
+        serviceType: "Resume Writing",
+        areaServed: "Canada",
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      item: {
+        "@type": "Service",
+        name: "Career Planning",
+        description: "Turn your career goal into a concrete action plan with 1, 3, and 6-month milestones so you always know what to focus on next.",
+        provider: { "@type": "Organization", name: "Goke" },
+        serviceType: "Career Counseling",
+        areaServed: "Canada",
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 4,
+      item: {
+        "@type": "Service",
+        name: "Interview Prep",
+        description: "Role-specific behavioral, situational, and technical interview questions with guided answer frameworks built from your actual experience.",
+        provider: { "@type": "Organization", name: "Goke" },
+        serviceType: "Interview Coaching",
+        areaServed: "Canada",
+      },
+    },
+  ],
 };
 
 const FEATURES = [
@@ -61,11 +178,15 @@ const FEATURES = [
   },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const posts = await getAllPosts();
+
   return (
     <>
       <SeoSchema schema={websiteSchema} />
       <SeoSchema schema={organizationSchema} />
+      <SeoSchema schema={faqSchema} />
+      <SeoSchema schema={servicesSchema} />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto sm:px-0 px-2 pb-2 pt-20">
@@ -75,7 +196,7 @@ export default function LandingPage() {
             <div className="absolute inset-0">
               <Image
                 src="/careerpro.jpg"
-                alt="Career professional"
+                alt="Professional navigating career advancement in Canada"
                 fill
                 priority
                 sizes="100vw"
@@ -114,6 +235,7 @@ export default function LandingPage() {
                       For Organizations →
                     </ButtonLink>
                   </div>
+                  <p className="mt-3 text-xs text-foreground/50">No credit card required · Takes less than 5 minutes</p>
                 </div>
               </div>
             </div>
@@ -172,7 +294,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-10 md:mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Here&apos;s how Goke gets you unstuck
+              How Goke works — from analysis to hired
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
               Three steps. No fluff. Just a clear path from where you are to where you want to be.
@@ -211,6 +333,9 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center mt-8 md:mt-14">
+            <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
+              See your analysis results in minutes — then decide if Goke is right for you.
+            </p>
             <ButtonLink href="/signup" size="lg" style={{ padding: '1.25rem 2rem' }}>
               Get Started Free
             </ButtonLink>
@@ -223,7 +348,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 max-w-5xl">
           <div className="text-center mb-8 md:mb-14">
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Everything you need to go from stuck to hired
+              AI career tools built for the Canadian job market
             </h2>
             <p className="text-muted-foreground max-w-xl mx-auto text-base md:text-lg">
               Four tools, one platform — each one built to solve a specific part of the process.
@@ -308,7 +433,6 @@ export default function LandingPage() {
                   "Unlimited Resume Optimizations",
                   "Full Interview Prep (all 7 categories)",
                   "Career Plans (1, 3 & 6 months)",
-                  "AI Bio Generation",
                   "Priority Support",
                 ].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm text-white/80">
@@ -322,6 +446,7 @@ export default function LandingPage() {
               >
                 Start Pro
               </ButtonLink>
+              <p className="text-center text-xs text-white/60 -mt-2">Cancel anytime. No contracts.</p>
             </div>
           </div>
 
@@ -501,6 +626,37 @@ export default function LandingPage() {
                   <p className="text-sm text-muted-foreground leading-relaxed">{item.a}</p>
                 </div>
               </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* From the Blog Section */}
+      <section className="py-12 md:py-20 bg-[#f0eee4]">
+        <div className="container mx-auto px-4 max-w-5xl">
+          <div className="flex items-end justify-between mb-8 md:mb-12">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-2">Career Resources</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground">From the Blog</h2>
+            </div>
+            <Link href="/blog" className="text-sm font-medium text-accent hover:underline shrink-0 ml-4">
+              View all →
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {posts.slice(0, 4).map((post) => (
+              <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
+                <article className="bg-card border border-white rounded-2xl p-6 h-full hover:shadow-md transition-shadow">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-3">
+                    {post.tags?.[0] ?? "Career Tips"}
+                  </p>
+                  <h3 className="text-base font-bold text-foreground group-hover:text-accent transition-colors mb-2 leading-snug">
+                    {post.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{post.description}</p>
+                </article>
+              </Link>
             ))}
           </div>
         </div>

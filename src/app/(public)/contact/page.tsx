@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "Contact Us | Goke",
   description:
     "Get in touch with the Goke team — whether you need support, want to book a demo, or are exploring a partnership.",
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/contact`,
+  },
 };
 
 const CONTACT_REASONS = [

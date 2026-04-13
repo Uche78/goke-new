@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export const metadata: Metadata = {
-  title: "Goke Partners | Career Tools for Organizations",
+  title: "Career Tools for Settlement Agencies & Employment Centers | Goke Partners",
   description:
-    "Goke Partners helps settlement agencies, employment centers, and immigrant-serving organizations give their clients a structured, personalized career path — at scale.",
+    "Goke Partners helps settlement agencies, employment centers, and workforce organizations give their clients AI-powered career tools at scale — without building anything in-house.",
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/partners`,
+  },
 };
 
 const HOW_IT_WORKS = [

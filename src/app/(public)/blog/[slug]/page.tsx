@@ -5,7 +5,7 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
 import { SeoSchema } from "@/components/shared/seo-schema";
 import { ButtonLink } from "@/components/ui/button-link";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -23,12 +23,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: post.title,
     description: post.description,
+    alternates: {
+      canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`,
+    },
     openGraph: {
       title: post.title,
       description: post.description,
       type: "article",
       publishedTime: post.publishedAt,
       authors: [post.author],
+      url: `${process.env.NEXT_PUBLIC_SITE_URL}/blog/${slug}`,
     },
   };
 }
@@ -45,10 +49,16 @@ export default async function BlogPostPage({ params }: Props) {
     description: post.description,
     author: { "@type": "Person", name: post.author },
     datePublished: post.publishedAt,
+    dateModified: post.publishedAt,
+    image: `${process.env.NEXT_PUBLIC_SITE_URL}/opengraph-image`,
     publisher: {
       "@type": "Organization",
       name: "Goke",
       url: process.env.NEXT_PUBLIC_SITE_URL,
+      logo: {
+        "@type": "ImageObject",
+        url: `${process.env.NEXT_PUBLIC_SITE_URL}/logo.svg`,
+      },
     },
   };
 
@@ -92,7 +102,7 @@ export default async function BlogPostPage({ params }: Props) {
           <div className="flex items-center gap-4 text-xs text-white/65">
             <span>{post.author}</span>
             <span>·</span>
-            <span>{formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true })}</span>
+            <span>{format(new Date(post.publishedAt), "MMMM d, yyyy")}</span>
           </div>
         </div>
       </section>

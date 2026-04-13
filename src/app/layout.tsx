@@ -22,19 +22,22 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Goke | AI-Powered Career Advancement",
+    default: "AI Career Tools for the Canadian Job Market | Goke",
     template: "%s | Goke",
   },
   description:
     "Goke gives you a clear, personalized path forward with AI-powered career analysis, resume optimization, and an actionable plan to get hired — wherever you are in your journey.",
   keywords: [
-    "career advancement",
-    "Canada jobs",
-    "career analysis",
-    "resume optimizer",
-    "job market Canada",
-    "career planning",
-    "interview preparation",
+    "career advancement Canada",
+    "how to get a job in Canada",
+    "resume optimizer Canada",
+    "career analysis tool",
+    "interview preparation Canada",
+    "AI career tools",
+    "job search Canada",
+    "career planning tool",
+    "settlement agency career tools",
+    "Canadian job market",
   ],
   authors: [{ name: "Goke" }],
   creator: "Goke",
@@ -43,24 +46,15 @@ export const metadata: Metadata = {
     locale: "en_CA",
     url: process.env.NEXT_PUBLIC_SITE_URL,
     siteName: "Goke",
-    title: "Goke | AI-Powered Career Advancement",
+    title: "AI Career Tools for the Canadian Job Market | Goke",
     description:
       "AI-powered career tools to help you find clarity, optimize your resume, and land your next role.",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "Goke - AI-Powered Career Advancement",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Goke | AI-Powered Career Advancement",
+    title: "AI Career Tools for the Canadian Job Market | Goke",
     description:
       "AI-powered career tools to help you find clarity, optimize your resume, and land your next role.",
-    images: ["/og-image.png"],
   },
   robots: {
     index: true,

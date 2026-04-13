@@ -3,9 +3,9 @@ import { SeoSchema } from "@/components/shared/seo-schema";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export const metadata: Metadata = {
-  title: "About Goke | Our Story",
+  title: "About Goke | AI Career Tools for Canadian Professionals",
   description:
-    "Goke was built to give everyone access to the career clarity that used to require a mentor, a coach, or the right connections.",
+    "Goke was built to give everyone access to the career clarity that used to require a mentor, a coach, or the right connections. Learn about our mission and the people behind the platform.",
   alternates: {
     canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/about`,
   },

@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "*.supabase.co" },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/blog/resume-tips-for-immigrants",
+        destination: "/blog/how-to-write-a-resume-that-gets-read",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

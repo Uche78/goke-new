@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { ButtonLink } from "@/components/ui/button-link";
 
 export const metadata: Metadata = {
-  title: "Blog | Goke",
+  title: "Career Resources & Job Search Guides for Canada | Goke",
   description:
-    "Career tips, job market guides, and practical advice for professionals navigating their next move.",
+    "Practical guides on resume writing, job search, interview preparation, and networking in Canada — for professionals at every stage of their career journey.",
+  alternates: {
+    canonical: `${process.env.NEXT_PUBLIC_SITE_URL}/blog`,
+  },
 };
 
 export default async function BlogPage() {
@@ -69,7 +72,7 @@ export default async function BlogPage() {
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/50">
                       <span className="text-xs text-muted-foreground">{post.author}</span>
                       <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true })}
+                        {format(new Date(post.publishedAt), "MMMM d, yyyy")}
                       </span>
                     </div>
                   </article>
