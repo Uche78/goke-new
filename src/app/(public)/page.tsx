@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { Compass, FileX2, Map, ScanSearch, ClipboardList, FileSearch, Mic } from "lucide-react";
 import { SeoSchema } from "@/components/shared/seo-schema";
 import { ButtonLink } from "@/components/ui/button-link";
 import { getAllPosts } from "@/lib/blog";
@@ -153,28 +154,28 @@ const FEATURES = [
     outcome: "Find out exactly where you stand",
     description:
       "Tell Goke about your background and target role. You get a clear breakdown: what you bring to the table, where the gaps are, and which parts of your experience are most valuable to employers right now.",
-    icon: "🎯",
+    icon: ScanSearch,
   },
   {
     title: "Career Planning",
     outcome: "Know what to do this week, this month, and in 6 months",
     description:
       "Goke turns your career goal into a concrete timeline — specific actions mapped to 1, 3, and 6-month milestones. No more wondering what to focus on next. You open the plan and do the next thing.",
-    icon: "📋",
+    icon: ClipboardList,
   },
   {
     title: "Resume Optimizer",
     outcome: "Get your resume past the filters and in front of people",
     description:
       "Paste in a job posting and your resume. Goke shows you exactly what's missing, what to reword, and how to restructure your experience so it matches what that specific employer is screening for.",
-    icon: "📄",
+    icon: FileSearch,
   },
   {
     title: "Interview Prep",
     outcome: "Walk into every interview prepared, not hoping for the best",
     description:
       "Based on your target role and background, Goke generates the questions you're most likely to face — behavioral, situational, and technical — and helps you build answers grounded in your actual experience.",
-    icon: "🎤",
+    icon: Mic,
   },
 ];
 
@@ -259,7 +260,7 @@ export default async function LandingPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-8 rounded-2xl bg-card border border-white">
-              <div className="text-3xl mb-4">🧭</div>
+              <div className="mb-4 text-accent"><Compass size={28} strokeWidth={1.5} /></div>
               <h3 className="text-lg font-semibold text-foreground mb-3">
                 You don&apos;t know where to start
               </h3>
@@ -269,7 +270,7 @@ export default async function LandingPage() {
             </div>
 
             <div className="p-8 rounded-2xl bg-card border border-white">
-              <div className="text-3xl mb-4">📄</div>
+              <div className="mb-4 text-accent"><FileX2 size={28} strokeWidth={1.5} /></div>
               <h3 className="text-lg font-semibold text-foreground mb-3">
                 Your resume isn&apos;t getting responses
               </h3>
@@ -279,7 +280,7 @@ export default async function LandingPage() {
             </div>
 
             <div className="p-8 rounded-2xl bg-card border border-white">
-              <div className="text-3xl mb-4">🗺️</div>
+              <div className="mb-4 text-accent"><Map size={28} strokeWidth={1.5} /></div>
               <h3 className="text-lg font-semibold text-foreground mb-3">
                 You have no clear roadmap
               </h3>
@@ -363,7 +364,7 @@ export default async function LandingPage() {
                 key={feature.title}
                 className="p-8 rounded-2xl border border-border bg-card hover:shadow-md transition-shadow"
               >
-                <div className="text-3xl mb-4">{feature.icon}</div>
+                <div className="mb-4 text-accent"><feature.icon size={28} strokeWidth={1.5} /></div>
                 <p className="text-xs font-semibold uppercase tracking-widest text-accent mb-1">{feature.title}</p>
                 <h3 className="text-lg font-bold text-foreground mb-3">
                   {feature.outcome}
