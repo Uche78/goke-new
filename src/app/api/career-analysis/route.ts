@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { anthropic, AI_MODEL, MAX_TOKENS } from "@/lib/ai/client";
 import { buildResumeExtractionPrompt } from "@/lib/ai/prompts/resume-extraction";
 import { buildCareerAnalysisPrompt } from "@/lib/ai/prompts/career-analysis";
@@ -143,7 +144,13 @@ export async function POST(request: Request) {
       }
 
       // Save to database after stream completes
+      // Use service role client — cookie-based client is unavailable inside the stream callback
       try {
+        const adminSupabase = createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
         let analysisJson = {};
         const jsonMatch = fullText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
@@ -156,7 +163,7 @@ export async function POST(request: Request) {
           } catch { /* keep {} */ }
         }
 
-        const { data: analysis, error: dbErr } = await supabase
+        const { data: analysis, error: dbErr } = await adminSupabase
           .from("career_analyses")
           .insert({
             user_id: user.id,
