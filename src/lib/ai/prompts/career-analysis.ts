@@ -33,7 +33,7 @@ Return ONLY a valid JSON object with NO markdown fences or extra text. Use this 
       "reasoning": "3–4 sentences max. Why this path fits their specific background. Be concrete — reference their actual experience or skills."
     }
   ],
-  "conclusion": "2–3 sentences. Affirm their strengths, name the single most important next action. End with: Ready to strategically plan your next career move? Get your personalized Career Plan today by clicking this link https://1k8pjub0i0k.typeform.com/to/O61HSI43"
+  "conclusion": "2–3 sentences. Affirm their strengths, name the single most important next action. End with: Ready to strategically plan your next career move? Click the button below."
 }
 
 Rules:
