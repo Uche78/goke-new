@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +15,88 @@ import { ResumeUploadDropzone } from "@/components/shared/resume-upload-dropzone
 import { useResume } from "@/hooks/use-resume";
 
 const STEPS = ["Resume", "Job Description", "Generate"];
+
+const PROGRESS_STAGES = [
+  { label: "Reading your resume and job description", duration: 5000 },
+  { label: "Mapping role requirements to your background", duration: 7000 },
+  { label: "Crafting behavioural questions", duration: 6000 },
+  { label: "Building situational scenarios", duration: 7000 },
+  { label: "Preparing competency-based questions", duration: 6000 },
+  { label: "Finalising your 32 questions", duration: 999999 },
+];
+
+const WHILE_YOU_WAIT = [
+  "Think about a time you solved a difficult problem under pressure — that story will come up.",
+  "What's your biggest professional achievement in the last 2 years? Have the numbers ready.",
+  "Research one thing about the company's culture that genuinely excites you — interviewers notice authentic interest.",
+  "Practice saying your name and current role out loud. First impressions start in the first 10 seconds.",
+  "What question are you most nervous about? Preparing for that one first will calm everything else.",
+];
+
+function InterviewProgressPanel() {
+  const [stageIndex, setStageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [tipIndex] = useState(() => Math.floor(Math.random() * WHILE_YOU_WAIT.length));
+
+  useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    PROGRESS_STAGES.forEach((stage, i) => {
+      const delay = PROGRESS_STAGES.slice(0, i).reduce((s, p) => s + p.duration, 0);
+      if (delay >= 999999) return;
+      timers.push(setTimeout(() => setStageIndex(i), delay));
+    });
+    const ticker = setInterval(() => {
+      setProgress((prev) => (prev < 90 ? prev + 1 : prev));
+    }, 800);
+    return () => {
+      timers.forEach(clearTimeout);
+      clearInterval(ticker);
+    };
+  }, []);
+
+  return (
+    <div className="space-y-5 rounded-xl border border-border bg-muted/30 p-5">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span className="font-medium text-foreground text-sm">
+            {PROGRESS_STAGES[stageIndex].label}
+            <span className="animate-pulse">...</span>
+          </span>
+          <span>{progress}%</span>
+        </div>
+        <Progress value={progress} className="h-2" />
+      </div>
+
+      <ul className="space-y-1.5">
+        {PROGRESS_STAGES.slice(0, stageIndex).map((stage, i) => (
+          <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+            <CheckCircle2 size={13} className="text-green-500 shrink-0" />
+            {stage.label}
+          </li>
+        ))}
+        <li className="flex items-center gap-2 text-xs text-foreground font-medium">
+          <Loader2 size={13} className="text-accent animate-spin shrink-0" />
+          {PROGRESS_STAGES[stageIndex].label}
+        </li>
+      </ul>
+
+      <Separator />
+
+      <div className="space-y-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-accent">
+          While you wait
+        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed italic">
+          &ldquo;{WHILE_YOU_WAIT[tipIndex]}&rdquo;
+        </p>
+      </div>
+
+      <p className="text-xs text-muted-foreground text-center">
+        This usually takes 20–40 seconds. Please don&apos;t close this page.
+      </p>
+    </div>
+  );
+}
 
 export function PrepWizard() {
   const router = useRouter();
@@ -192,15 +275,7 @@ export function PrepWizard() {
               </div>
             </div>
 
-            {generating && (
-              <div className="flex flex-col items-center gap-3 py-4 text-center">
-                <Loader2 size={32} className="text-accent animate-spin" />
-                <div>
-                  <p className="font-medium">Generating questions...</p>
-                  <p className="text-sm text-muted-foreground">This takes about 20 seconds.</p>
-                </div>
-              </div>
-            )}
+            {generating && <InterviewProgressPanel />}
 
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep(1)} disabled={generating}>Back</Button>
