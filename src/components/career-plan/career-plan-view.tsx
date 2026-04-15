@@ -519,7 +519,7 @@ function PlanContent({ plan, completedTasks, onToggle }: PlanContentProps) {
                 const typeKey = (action.type ?? "ongoing") as keyof typeof TYPE_CONFIG;
                 const config = TYPE_CONFIG[typeKey] ?? TYPE_CONFIG.ongoing;
                 const Icon = config.icon;
-                const isCompletable = action.type === "quick_win" || action.type === "key_milestone";
+                const isCompletable = true;
                 const taskKey = `${mi}-${ai}`;
                 const isCompleted = completedTasks.includes(taskKey);
 
