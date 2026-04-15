@@ -38,6 +38,14 @@ export default async function AnalysisResultsPage({ params }: Props) {
 
   const result = analysis.analysis_json as CareerAnalysisResult;
 
+  const { count: planCount } = await supabase
+    .from("career_plans")
+    .select("id", { count: "exact", head: true })
+    .eq("analysis_id", analysisId)
+    .eq("user_id", user.id);
+
+  const hasPlan = (planCount ?? 0) > 0;
+
   return (
     <div className="max-w-3xl mx-auto space-y-8">
       <div className="space-y-2">
@@ -111,7 +119,7 @@ export default async function AnalysisResultsPage({ params }: Props) {
       {/* CTA to Career Plan */}
       <div className="text-center py-4">
         <ButtonLink href="/career-plan" size="lg">
-          Build Your Career Plan
+          {hasPlan ? "View Career Plan" : "Build Your Career Plan"}
         </ButtonLink>
       </div>
     </div>
