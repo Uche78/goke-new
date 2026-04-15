@@ -252,10 +252,7 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
     const missing = TIMEFRAMES
       .filter(({ value }) => !plans[`${selectedPath}-${value}`])
       .map(({ value }) => value);
-    // Generate sequentially — parallel Anthropic calls cause Netlify 502/504 timeouts
-    for (const tf of missing) {
-      await fetchPlan(tf, selectedPath);
-    }
+    await Promise.allSettled(missing.map((tf) => fetchPlan(tf, selectedPath)));
     setGeneratingAll(false);
   };
 
@@ -396,7 +393,7 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
                 Generate All Plans (1, 3 &amp; 6 Month)
               </Button>
               <p className="text-xs text-muted-foreground">
-                Plans generate one at a time — usually takes 60–90 seconds each
+                All three plans generate in parallel — usually takes 60–90 seconds
               </p>
             </div>
           )}
@@ -471,7 +468,7 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
                 </p>
               </div>
               <p className="text-xs text-muted-foreground text-center">
-                Plans generate one at a time — please don&apos;t close this page.
+                Plans are generating in parallel — please don&apos;t close this page.
               </p>
             </div>
           )}
