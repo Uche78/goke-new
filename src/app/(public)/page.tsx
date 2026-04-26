@@ -225,7 +225,7 @@ export default async function LandingPage() {
                     Whether you&apos;re stuck at a crossroads or navigating a new market — Goke gives you a clear, personalized path forward with AI-powered career analysis, resume optimization, and an actionable plan to get hired.
                   </p>
                   <div className="mt-8 flex flex-col sm:flex-row items-start gap-4">
-                    <ButtonLink href="/signup" size="lg" style={{ padding: '1.50rem 2rem' }}>
+                    <ButtonLink href="/get-started" size="lg" style={{ padding: '1.50rem 2rem' }}>
                       Get My Free Career Analysis
                     </ButtonLink>
                     <ButtonLink
@@ -339,7 +339,7 @@ export default async function LandingPage() {
             <p className="text-sm text-muted-foreground mb-6 max-w-md mx-auto">
               See your analysis results in minutes — then decide if Goke is right for you.
             </p>
-            <ButtonLink href="/signup" size="lg" style={{ padding: '1.25rem 2rem' }}>
+            <ButtonLink href="/get-started" size="lg" style={{ padding: '1.25rem 2rem' }}>
               Get Started Free
             </ButtonLink>
           </div>
@@ -409,7 +409,7 @@ export default async function LandingPage() {
                 ))}
               </ul>
               <ButtonLink
-                href="/signup"
+                href="/get-started"
                 variant="outline"
                 className="w-full justify-center border-[#487f6a] text-[#487f6a] hover:bg-[#487f6a] hover:text-white"
               >
@@ -478,17 +478,17 @@ export default async function LandingPage() {
               {
                 quote: "I knew I had the skills — I just didn't know how to communicate them to Canadian employers. Goke helped me see exactly what was missing and gave me a clear plan to fix it.",
                 name: "Amara T.",
-                detail: "Marketing Professional · Nigeria → Toronto",
+                detail: "Marketing Professional · Toronto",
               },
               {
                 quote: "After months of applying and hearing nothing back, I finally understood why. The resume optimizer showed me how my experience was being read — and how to change that.",
                 name: "Daniel K.",
-                detail: "Software Engineer · Kenya → Vancouver",
+                detail: "Software Engineer · Vancouver",
               },
               {
                 quote: "I wasn't even sure what role I should be targeting. The career analysis gave me clarity I didn't know I needed. I finally feel like I have direction.",
                 name: "Sofia R.",
-                detail: "Project Manager · Colombia → Calgary",
+                detail: "Project Manager · Calgary",
               },
             ].map((t) => (
               <div key={t.name} className="bg-background rounded-2xl border border-border p-8 flex flex-col justify-between">
@@ -506,8 +506,8 @@ export default async function LandingPage() {
             {[
               { stat: "2,000+", label: "Professionals Helped" },
               { stat: "85%", label: "Report Stronger Job Prospects" },
-              { stat: "50+", label: "Industries Covered" },
-              { stat: "10", label: "Canadian Provinces" },
+              { stat: "20+", label: "Industries Covered" },
+              { stat: "95%", label: "Would Recommend to a Friend" },
             ].map((item) => (
               <div key={item.label}>
                 <div className="text-3xl font-bold text-accent mb-1">{item.stat}</div>
@@ -676,7 +676,7 @@ export default async function LandingPage() {
               Join thousands of professionals who stopped waiting for clarity and started building it. Your first step takes less than 5 minutes.
             </p>
             <ButtonLink
-              href="/signup"
+              href="/get-started"
               size="lg"
               style={{ padding: '1.25rem 2.5rem' }}
             >

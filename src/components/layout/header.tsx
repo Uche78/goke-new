@@ -52,7 +52,7 @@ export function Header() {
               Sign In
             </ButtonLink>
             <ButtonLink
-              href="/signup"
+              href="/get-started"
               style={{ padding: '0.6rem 1.25rem' }}
             >
               Get Started
@@ -89,7 +89,7 @@ export function Header() {
                 Sign In
               </ButtonLink>
               <ButtonLink
-                href="/signup"
+                href="/get-started"
                 className="w-full justify-center"
               >
                 Get Started
