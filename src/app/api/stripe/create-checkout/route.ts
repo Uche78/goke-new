@@ -3,10 +3,9 @@ import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { CREDIT_PACK_PRICE_CENTS, CREDIT_PACK_CREDITS } from "@/lib/credits";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
 export async function POST() {
   try {
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
