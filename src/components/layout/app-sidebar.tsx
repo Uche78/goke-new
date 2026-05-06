@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { CreditBalance } from "@/components/app/credit-balance";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -65,8 +66,9 @@ export function AppSidebar() {
         })}
       </nav>
 
-      {/* Sign out */}
-      <div className="p-4 border-t border-sidebar-border">
+      {/* Credits + Sign out */}
+      <div className="p-4 border-t border-sidebar-border space-y-3">
+        <CreditBalance />
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-colors w-full"

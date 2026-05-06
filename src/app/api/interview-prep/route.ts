@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { anthropic, AI_MODEL, MAX_TOKENS } from "@/lib/ai/client";
+import { checkAndDeductCredits } from "@/lib/credits";
 import { buildInterviewPrepPrompt } from "@/lib/ai/prompts/interview-prep";
 import { extractTextFromPDF } from "@/lib/pdf/parse-resume";
 import { z } from "zod";
@@ -19,6 +21,19 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const adminSupabase = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const creditResult = await checkAndDeductCredits(user.id, "interview_prep", adminSupabase);
+  if (!creditResult.ok) {
+    return NextResponse.json(
+      { error: "insufficient_credits", required: creditResult.required, balance: creditResult.balance },
+      { status: 402 }
+    );
+  }
 
   const json = await request.json();
   const parsed = bodySchema.safeParse(json);

@@ -15,14 +15,19 @@ export default async function CareerPlanPage({ searchParams }: Props) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Load all analyses for the selector
-  const { data: allAnalyses } = user
-    ? await supabase
-        .from("career_analyses")
-        .select("id, stage, country, created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-    : { data: [] };
+  // Load all analyses + profile in parallel
+  const [{ data: allAnalyses }, { data: profile }] = await Promise.all([
+    user
+      ? supabase
+          .from("career_analyses")
+          .select("id, stage, country, created_at")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+      : Promise.resolve({ data: [] }),
+    user
+      ? supabase.from("profiles").select("first_name, plan").eq("id", user.id).single()
+      : Promise.resolve({ data: null }),
+  ]);
 
   // Default to most recent if none specified
   const resolvedAnalysisId =
@@ -40,6 +45,8 @@ export default async function CareerPlanPage({ searchParams }: Props) {
         analysisId={resolvedAnalysisId}
         allAnalyses={allAnalyses ?? []}
         defaultPathIndex={pathIndex ? parseInt(pathIndex, 10) : 0}
+        firstName={profile?.first_name ?? null}
+        plan={(profile?.plan as "free" | "pro") ?? "free"}
       />
     </div>
   );

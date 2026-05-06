@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { anthropic, AI_MODEL } from "@/lib/ai/client";
+import { checkAndDeductCredits, type CreditTool } from "@/lib/credits";
 import { buildCareerPlanPrompt } from "@/lib/ai/prompts/career-plan";
 import { z } from "zod";
 import type { CareerAnalysisResult } from "@/types/ai";
@@ -45,6 +46,23 @@ export async function POST(request: Request) {
         plan: existing.plan_json,
         completedTasks: existing.completed_tasks ?? [],
       });
+    }
+
+    // Map timeframe to credit tool key
+    const toolKey = `career_plan_${timeframe}` as CreditTool;
+
+    const adminSupabase = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    // Credit check (after cache check — cached plans are free)
+    const creditResult = await checkAndDeductCredits(user.id, toolKey, adminSupabase);
+    if (!creditResult.ok) {
+      return NextResponse.json(
+        { error: "insufficient_credits", required: creditResult.required, balance: creditResult.balance },
+        { status: 402 }
+      );
     }
 
     // Fetch the analysis
@@ -123,12 +141,6 @@ export async function POST(request: Request) {
       console.error("Plan has no milestones. planJson:", JSON.stringify(planJson).slice(0, 300));
       return NextResponse.json({ error: "Plan generated but has no milestones" }, { status: 500 });
     }
-
-    // Use admin client — cookie-based client can be unreliable after a long AI call
-    const adminSupabase = createAdminClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
 
     const { data: inserted, error: insertErr } = await adminSupabase
       .from("career_plans")

@@ -153,40 +153,7 @@ export function PreviewTeaser({ result, pendingData }: Props) {
         </div>
       )}
 
-      {/* Locked sections */}
-      <div className="relative rounded-xl overflow-hidden">
-        {/* Blurred content */}
-        <div className="blur-sm pointer-events-none select-none space-y-4 p-5 bg-card border border-border rounded-xl">
-          {lockedAnalysis && <FormattedText text={lockedAnalysis} />}
-          <div className="space-y-2 mt-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Job Market in {pendingData.country}</p>
-            <FormattedText text={result.geo_considerations ?? "Detailed market insights for your region..."} />
-          </div>
-          <div className="space-y-3 mt-4">
-            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Recommended Career Paths</p>
-            {(result.paths ?? []).map((path, i) => (
-              <div key={i} className="p-4 rounded-lg border border-border">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="font-semibold text-sm">{path.name}</p>
-                  <span className="text-xs font-bold text-accent">{path.match_percent}% match</span>
-                </div>
-                <p className="text-xs text-muted-foreground">{path.salary_range}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Lock overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[2px]">
-          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mb-3">
-            <Lock size={20} className="text-accent" />
-          </div>
-          <p className="text-sm font-semibold text-foreground">Full analysis locked</p>
-          <p className="text-xs text-muted-foreground mt-1">Create a free account to see everything</p>
-        </div>
-      </div>
-
-      {/* Signup form */}
+      {/* Signup form — placed before locked content so it's visible without scrolling */}
       <div className="p-6 rounded-xl border-2 border-accent/30 bg-card space-y-5">
         <div>
           <h3 className="text-base font-bold text-foreground">Create your free account</h3>
@@ -219,6 +186,39 @@ export function PreviewTeaser({ result, pendingData }: Props) {
           Already have an account?{" "}
           <a href="/login" className="text-accent font-medium hover:underline">Sign in</a>
         </p>
+      </div>
+
+      {/* Locked sections — visible below signup as motivation */}
+      <div className="relative rounded-xl overflow-hidden">
+        {/* Blurred content */}
+        <div className="blur-sm pointer-events-none select-none space-y-4 p-5 bg-card border border-border rounded-xl">
+          {lockedAnalysis && <FormattedText text={lockedAnalysis} />}
+          <div className="space-y-2 mt-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Job Market in {pendingData.country}</p>
+            <FormattedText text={result.geo_considerations ?? "Detailed market insights for your region..."} />
+          </div>
+          <div className="space-y-3 mt-4">
+            <p className="text-xs font-semibold uppercase tracking-widest text-accent">Recommended Career Paths</p>
+            {(result.paths ?? []).map((path, i) => (
+              <div key={i} className="p-4 rounded-lg border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-semibold text-sm">{path.name}</p>
+                  <span className="text-xs font-bold text-accent">{path.match_percent}% match</span>
+                </div>
+                <p className="text-xs text-muted-foreground">{path.salary_range}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Lock overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 backdrop-blur-[2px]">
+          <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mb-3">
+            <Lock size={20} className="text-accent" />
+          </div>
+          <p className="text-sm font-semibold text-foreground">Full analysis locked</p>
+          <p className="text-xs text-muted-foreground mt-1">Create a free account to see everything</p>
+        </div>
       </div>
     </div>
   );

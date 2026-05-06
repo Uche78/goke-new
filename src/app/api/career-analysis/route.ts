@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { anthropic, AI_MODEL, MAX_TOKENS } from "@/lib/ai/client";
+import { checkAndDeductCredits } from "@/lib/credits";
 import { buildCareerAnalysisPrompt } from "@/lib/ai/prompts/career-analysis";
 import { extractTextFromPDF, extractTextFromDocx } from "@/lib/pdf/parse-resume";
 import { z } from "zod";
@@ -81,6 +82,15 @@ export async function POST(request: Request) {
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    // Credit check
+    const creditResult = await checkAndDeductCredits(user.id, "career_analysis", adminSupabase);
+    if (!creditResult.ok) {
+      return NextResponse.json(
+        { error: "insufficient_credits", required: creditResult.required, balance: creditResult.balance },
+        { status: 402 }
+      );
+    }
 
     // Pass resume text directly — skips a redundant extraction API call
     const resumeData = resumeText.slice(0, 3000);

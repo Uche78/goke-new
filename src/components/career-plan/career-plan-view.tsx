@@ -5,16 +5,19 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Loader2, ChevronDown, Zap, Star, RefreshCw,
-  CheckCircle2, Square, CheckSquare,
+  CheckCircle2, Square, CheckSquare, UserCircle, Lock, ChevronsUpDown, ExternalLink,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { createClient } from "@/lib/supabase/client";
 import type { CareerAnalysisResult, CareerPlanResult } from "@/types/ai";
 import { ButtonLink } from "@/components/ui/button-link";
+import { InsufficientCreditsModal } from "@/components/app/insufficient-credits-modal";
+import type { CreditTool } from "@/lib/credits";
 import { formatDistanceToNow } from "date-fns";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -36,6 +39,8 @@ interface Props {
   analysisId: string | null;
   allAnalyses: AnalysisSummary[];
   defaultPathIndex?: number;
+  firstName: string | null;
+  plan: "free" | "pro";
 }
 
 const TIMEFRAMES: Array<{ value: "1mo" | "3mo" | "6mo"; label: string }> = [
@@ -164,9 +169,89 @@ function countCompletableTasks(plan: CareerPlanResult): number {
   }, 0) ?? 0;
 }
 
+// ─── Analysis switcher ────────────────────────────────────────────────────────
+
+function AnalysisSwitcher({
+  analyses,
+  activeId,
+  onSwitch,
+}: {
+  analyses: AnalysisSummary[];
+  activeId: string;
+  onSwitch: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const active = analyses.find((a) => a.id === activeId);
+
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border border-border bg-muted/30">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-xs text-muted-foreground shrink-0">Plans for</span>
+        <span className="text-sm font-medium truncate capitalize">
+          {active?.stage} Stage · {active?.country}
+        </span>
+        <span className="text-xs text-muted-foreground shrink-0">
+          {active ? formatDistanceToNow(new Date(active.created_at), { addSuffix: true }) : ""}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <a
+          href={`/career-analysis/results/${activeId}`}
+          className="flex items-center gap-1 text-xs text-accent hover:underline underline-offset-2"
+        >
+          View analysis
+          <ExternalLink size={11} />
+        </a>
+
+        {analyses.length > 1 && (
+          <div className="relative">
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border bg-background text-xs font-medium hover:border-accent/50 transition-colors"
+            >
+              Switch
+              <ChevronsUpDown size={12} className="text-muted-foreground" />
+            </button>
+
+            {open && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+                <div className="absolute right-0 top-full mt-1.5 z-20 w-64 rounded-xl border border-border bg-background shadow-lg overflow-hidden">
+                  {analyses.map((a) => (
+                    <button
+                      key={a.id}
+                      onClick={() => { onSwitch(a.id); setOpen(false); }}
+                      className={`w-full flex items-start justify-between gap-3 px-4 py-3 text-left text-sm transition-colors hover:bg-muted/50 ${
+                        a.id === activeId ? "bg-accent/5" : ""
+                      }`}
+                    >
+                      <div>
+                        <p className={`font-medium capitalize ${a.id === activeId ? "text-accent" : "text-foreground"}`}>
+                          {a.stage} Stage · {a.country}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                      {a.id === activeId && (
+                        <CheckCircle2 size={14} className="text-accent shrink-0 mt-0.5" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }: Props) {
+export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0, firstName, plan }: Props) {
   const router = useRouter();
   const [activeAnalysisId, setActiveAnalysisId] = useState(analysisId);
   const [analysis, setAnalysis] = useState<CareerAnalysisResult | null>(null);
@@ -175,6 +260,11 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
   const [loadingKeys, setLoadingKeys] = useState<Set<string>>(new Set());
   const [generatingAll, setGeneratingAll] = useState(false);
   const [tipIndex] = useState(() => Math.floor(Math.random() * WHILE_YOU_WAIT.length));
+  const [resolvedName, setResolvedName] = useState<string | null>(firstName);
+  const [showNamePrompt, setShowNamePrompt] = useState(!firstName);
+  const [nameInput, setNameInput] = useState("");
+  const [savingName, setSavingName] = useState(false);
+  const [creditError, setCreditError] = useState<{ tool: CreditTool; balance: number } | null>(null);
 
   const anyLoading = loadingKeys.size > 0 || generatingAll;
 
@@ -230,6 +320,10 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
         body: JSON.stringify({ analysisId: activeAnalysisId, pathIndex, timeframe }),
       });
       const data = await res.json();
+      if (res.status === 402) {
+        setCreditError({ tool: `career_plan_${timeframe}` as CreditTool, balance: data.balance ?? 0 });
+        return;
+      }
       if (!res.ok) throw new Error(data.error);
       if (!data.plan?.milestones?.length) throw new Error("Empty response");
       setPlans((prev) => ({
@@ -249,10 +343,9 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
 
   const handleGenerateAll = async () => {
     setGeneratingAll(true);
-    const missing = TIMEFRAMES
-      .filter(({ value }) => !plans[`${selectedPath}-${value}`])
-      .map(({ value }) => value);
-    await Promise.allSettled(missing.map((tf) => fetchPlan(tf, selectedPath)));
+    const allowedTimeframes = plan === "free" ? ["1mo"] : TIMEFRAMES.map(({ value }) => value);
+    const missing = allowedTimeframes.filter((tf) => !plans[`${selectedPath}-${tf}`]);
+    await Promise.allSettled(missing.map((tf) => fetchPlan(tf as "1mo" | "3mo" | "6mo", selectedPath)));
     setGeneratingAll(false);
   };
 
@@ -292,6 +385,24 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
 
   const getPlan = (timeframe: "1mo" | "3mo" | "6mo") => fetchPlan(timeframe, selectedPath);
 
+  const handleSaveName = async () => {
+    const trimmed = nameInput.trim();
+    if (!trimmed) { setShowNamePrompt(false); return; }
+    setSavingName(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("profiles")
+      .update({ first_name: trimmed })
+      .eq("id", (await supabase.auth.getUser()).data.user!.id);
+    if (error) toast.error("Could not save your name. You can update it in Profile.");
+    else {
+      setResolvedName(trimmed);
+      toast.success(`Welcome, ${trimmed}!`);
+    }
+    setShowNamePrompt(false);
+    setSavingName(false);
+  };
+
   if (!activeAnalysisId) {
     return (
       <div className="text-center py-12 space-y-4">
@@ -304,50 +415,22 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
   const activeAnalysis = allAnalyses.find((a) => a.id === activeAnalysisId);
 
   return (
+    <>
+    <InsufficientCreditsModal
+      open={!!creditError}
+      onClose={() => setCreditError(null)}
+      tool={creditError?.tool ?? "career_plan_1mo"}
+      balance={creditError?.balance ?? 0}
+    />
     <div className="space-y-6">
-      {/* Analysis selector */}
-      {allAnalyses.length > 1 && (
-        <div className="p-4 rounded-xl border border-border bg-muted/30 space-y-3">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Viewing plans for</p>
-          <div className="flex flex-wrap gap-2">
-            {allAnalyses.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => handleSwitchAnalysis(a.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                  a.id === activeAnalysisId
-                    ? "border-accent bg-accent/10 text-accent font-medium"
-                    : "border-border hover:border-accent/40 text-muted-foreground"
-                }`}
-              >
-                <span className="capitalize">{a.stage} stage</span>
-                <span className="text-xs opacity-70">·</span>
-                <span>{a.country}</span>
-                <span className="text-xs opacity-60">
-                  {formatDistanceToNow(new Date(a.created_at), { addSuffix: true })}
-                </span>
-                {a.id === activeAnalysisId && <ChevronDown size={12} />}
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Each career analysis has its own independent set of plans.{" "}
-            <a href={`/career-analysis/results/${activeAnalysisId}`} className="text-accent underline-offset-2 hover:underline">
-              View this analysis →
-            </a>
-          </p>
-        </div>
-      )}
 
-      {allAnalyses.length === 1 && activeAnalysis && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            Plans for your <span className="capitalize">{activeAnalysis.stage}</span> stage analysis in {activeAnalysis.country}
-          </span>
-          <a href={`/career-analysis/results/${activeAnalysisId}`} className="text-accent text-xs hover:underline underline-offset-2">
-            View analysis →
-          </a>
-        </div>
+      {/* Analysis switcher */}
+      {activeAnalysis && (
+        <AnalysisSwitcher
+          analyses={allAnalyses}
+          activeId={activeAnalysisId!}
+          onSwitch={handleSwitchAnalysis}
+        />
       )}
 
       {/* Loading analysis */}
@@ -386,15 +469,56 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
             </div>
           </div>
 
-          {/* Generate all button */}
+          {/* Name prompt — shown once if first_name is missing */}
+          {showNamePrompt && (
+            <div className="rounded-xl border border-accent/30 bg-accent/5 p-5 space-y-3">
+              <div className="flex items-center gap-2">
+                <UserCircle size={18} className="text-accent shrink-0" />
+                <p className="text-sm font-semibold">Personalise your plan</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                What should we call you? We&apos;ll use your name to tailor the plan language.
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Your first name"
+                  className="max-w-xs"
+                  onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
+                />
+                <Button onClick={handleSaveName} disabled={savingName} size="sm">
+                  {savingName ? <Loader2 size={14} className="animate-spin" /> : "Save"}
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowNamePrompt(false)} className="text-muted-foreground">
+                  Skip
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Generate button */}
           {TIMEFRAMES.every(({ value }) => !plans[`${selectedPath}-${value}`]) && !anyLoading && (
             <div className="text-center py-4 space-y-1.5">
-              <Button size="lg" onClick={handleGenerateAll}>
-                Generate All Plans (1, 3 &amp; 6 Month)
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                All three plans generate in parallel — usually takes 60–90 seconds
-              </p>
+              {plan === "free" ? (
+                <>
+                  <Button size="lg" onClick={handleGenerateAll}>
+                    Generate {resolvedName ? `${resolvedName}'s` : ""} 1-Month Plan
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Upgrade to Pro to unlock 3-month and 6-month plans
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Button size="lg" onClick={handleGenerateAll}>
+                    Generate {resolvedName ? `${resolvedName}'s` : "All"} Plans (1, 3 &amp; 6 Month)
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    All three plans generate in parallel — usually takes 60–90 seconds
+                  </p>
+                </>
+              )}
             </div>
           )}
 
@@ -442,14 +566,31 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-3 py-12">
-                      {!anyLoading && (
-                        <>
-                          <p className="text-sm text-muted-foreground">This plan could not be generated.</p>
-                          <Button variant="outline" onClick={() => getPlan(value)}>
-                            Retry {label} Plan
-                          </Button>
-                        </>
-                      )}
+                      {!anyLoading && (() => {
+                        const isLocked = plan === "free" && (value === "3mo" || value === "6mo");
+                        if (isLocked) {
+                          return (
+                            <div className="w-full max-w-sm rounded-xl border border-border bg-muted/30 p-6 text-center space-y-3">
+                              <Lock size={22} className="mx-auto text-muted-foreground" />
+                              <p className="font-medium text-sm">{label} Plan — Pro only</p>
+                              <p className="text-xs text-muted-foreground">
+                                Upgrade to Pro to generate 3-month and 6-month career plans.
+                              </p>
+                              <ButtonLink href="/pricing" className="w-full justify-center">
+                                Upgrade to Pro
+                              </ButtonLink>
+                            </div>
+                          );
+                        }
+                        return (
+                          <>
+                            <p className="text-sm text-muted-foreground">This plan could not be generated.</p>
+                            <Button variant="outline" onClick={() => getPlan(value)}>
+                              Retry {label} Plan
+                            </Button>
+                          </>
+                        );
+                      })()}
                     </div>
                   )}
                 </TabsContent>
@@ -475,6 +616,7 @@ export function CareerPlanView({ analysisId, allAnalyses, defaultPathIndex = 0 }
         </>
       )}
     </div>
+    </>
   );
 }
 

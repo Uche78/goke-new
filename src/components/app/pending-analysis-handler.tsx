@@ -16,11 +16,13 @@ export function PendingAnalysisHandler() {
     const raw = localStorage.getItem(PENDING_KEY);
     if (!raw) return;
 
+    // Remove before fetching so remounts (React Strict Mode) don't double-submit
+    localStorage.removeItem(PENDING_KEY);
+
     let pending: Record<string, unknown>;
     try {
       pending = JSON.parse(raw);
     } catch {
-      localStorage.removeItem(PENDING_KEY);
       return;
     }
 
@@ -31,13 +33,12 @@ export function PendingAnalysisHandler() {
     })
       .then((res) => res.json())
       .then((data) => {
-        localStorage.removeItem(PENDING_KEY);
         if (data.analysisId) {
           router.push(`/career-analysis/results/${data.analysisId}`);
         }
       })
       .catch(() => {
-        localStorage.removeItem(PENDING_KEY);
+        // Analysis lost — user can redo from dashboard
       });
   }, [router]);
 

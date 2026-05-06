@@ -36,7 +36,8 @@ export function useStreaming(): UseStreamingReturn {
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({ error: "Request failed" }));
-        const e = new Error(err.error ?? "Request failed") as Error & { payload?: unknown };
+        const e = new Error(err.error ?? "Request failed") as Error & { status?: number; payload?: unknown };
+        e.status = response.status;
         e.payload = err;
         throw e;
       }

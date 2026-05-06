@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, CircleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,8 +103,29 @@ export function ProfileForm({ profile, resume: initialResume }: Props) {
     }
   };
 
+  const missingFields: string[] = [];
+  if (!profile?.first_name) missingFields.push("first name");
+  if (!profile?.profile_email) missingFields.push("contact email");
+  if (!currentResume) missingFields.push("resume");
+  const completionPct = Math.round(((3 - missingFields.length) / 3) * 100);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Completion banner */}
+      {missingFields.length > 0 && (
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 flex items-start gap-3">
+          <CircleAlert size={16} className="text-yellow-600 mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-yellow-800">
+              Profile {completionPct}% complete
+            </p>
+            <p className="text-xs text-yellow-700">
+              Missing: {missingFields.join(", ")}. A complete profile helps us give you more personalised recommendations.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Name — read only */}
       <Card>
         <CardHeader><CardTitle className="text-base">Name</CardTitle></CardHeader>

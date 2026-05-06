@@ -10,6 +10,7 @@ import { StepResume } from "./step-resume";
 import { StepCareerStage } from "./step-career-stage";
 import { StepLocation } from "./step-location";
 import { StepReview } from "./step-review";
+import { InsufficientCreditsModal } from "@/components/app/insufficient-credits-modal";
 
 export interface AnalysisFormData {
   resumeText?: string;
@@ -28,6 +29,7 @@ export function AnalysisWizard() {
   const [data, setData] = useState<AnalysisFormData>({});
   const [duplicateId, setDuplicateId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [creditError, setCreditError] = useState<{ required: number; balance: number } | null>(null);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -61,6 +63,10 @@ export function AnalysisWizard() {
       const payload = await res.json();
 
       if (!res.ok) {
+        if (res.status === 402) {
+          setCreditError({ required: payload.required ?? 2, balance: payload.balance ?? 0 });
+          return;
+        }
         if (payload?.error === "duplicate" && payload.existingId) {
           setDuplicateId(payload.existingId);
           return;
@@ -83,6 +89,13 @@ export function AnalysisWizard() {
   };
 
   return (
+    <>
+    <InsufficientCreditsModal
+      open={!!creditError}
+      onClose={() => setCreditError(null)}
+      tool="career_analysis"
+      balance={creditError?.balance ?? 0}
+    />
     <div className="space-y-6">
       {/* Progress */}
       <div className="space-y-2">
@@ -144,5 +157,6 @@ export function AnalysisWizard() {
         />
       )}
     </div>
+    </>
   );
 }

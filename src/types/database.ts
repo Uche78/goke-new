@@ -20,8 +20,33 @@ export interface Profile {
   profile_email: string | null;
   bio: string | null;
   onboarding_completed: boolean;
+  plan: "free" | "pro";
+  free_career_analysis_used: boolean;
+  free_1mo_plan_used: boolean;
+  free_interview_prep_used: boolean;
+  free_resume_optimization_used: boolean;
+  stripe_customer_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserCredits {
+  user_id: string;
+  balance: number;
+  credits_reset_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreditTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  type: "purchase" | "monthly_reset" | "usage" | "free_tier";
+  tool: string | null;
+  reference_id: string | null;
+  stripe_session_id: string | null;
+  created_at: string;
 }
 
 export interface Resume {

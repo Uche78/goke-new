@@ -9,6 +9,7 @@ import { StepResume } from "./step-resume";
 import { StepJobDescription } from "./step-job-description";
 import { StepReview } from "./step-review";
 import { useStreaming } from "@/hooks/use-streaming";
+import { InsufficientCreditsModal } from "@/components/app/insufficient-credits-modal";
 
 export interface OptimizerFormData {
   jobTitle?: string;
@@ -25,6 +26,8 @@ export function OptimizerWizard() {
   const [step, setStep] = useState(0);
   const [data, setData] = useState<OptimizerFormData>({});
   const { isStreaming, error, stream } = useStreaming();
+  const [creditError, setCreditError] = useState<{ required: number; balance: number } | null>(null);
+  const [isCreditError, setIsCreditError] = useState(false);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -35,12 +38,24 @@ export function OptimizerWizard() {
   const handleBack = () => setStep((s) => Math.max(0, s - 1));
 
   const handleSubmit = async () => {
-    const fullText = await stream("/api/resume-optimize", {
+    setIsCreditError(false);
+    let fullText = "";
+    try {
+      fullText = await stream("/api/resume-optimize", {
       jobTitle: data.jobTitle,
       jobDescription: data.jobDescription,
       resumeText: data.resumeText ?? undefined,
       resumeStoragePath: !data.resumeText ? (data.resumeStoragePath ?? undefined) : undefined,
-    });
+      });
+    } catch (err) {
+      type StreamError = Error & { status?: number; payload?: Record<string, unknown> };
+      const e = err as StreamError;
+      if (e.status === 402) {
+        setIsCreditError(true);
+        setCreditError({ required: (e.payload?.required as number) ?? 2, balance: (e.payload?.balance as number) ?? 0 });
+      }
+      return;
+    }
 
     const idMatch = fullText.match(/__RECORD_ID__(\{[^}]+\})/);
     if (idMatch) {
@@ -56,10 +71,17 @@ export function OptimizerWizard() {
   };
 
   useEffect(() => {
-    if (error) toast.error(error);
-  }, [error]);
+    if (error && !isCreditError) toast.error(error);
+  }, [error, isCreditError]);
 
   return (
+    <>
+    <InsufficientCreditsModal
+      open={!!creditError}
+      onClose={() => setCreditError(null)}
+      tool="resume_optimization"
+      balance={creditError?.balance ?? 0}
+    />
     <div className="space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between text-xs text-muted-foreground">
@@ -93,5 +115,6 @@ export function OptimizerWizard() {
         />
       )}
     </div>
+    </>
   );
 }

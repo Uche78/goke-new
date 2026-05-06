@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ResumeUploadDropzone } from "@/components/shared/resume-upload-dropzone";
 import { useResume } from "@/hooks/use-resume";
+import { InsufficientCreditsModal } from "@/components/app/insufficient-credits-modal";
 
 const STEPS = ["Resume", "Job Description", "Generate"];
 
@@ -109,6 +110,7 @@ export function PrepWizard() {
   const [jobDescription, setJobDescription] = useState("");
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [creditError, setCreditError] = useState<{ required: number; balance: number } | null>(null);
 
   const progress = ((step + 1) / STEPS.length) * 100;
 
@@ -149,6 +151,10 @@ export function PrepWizard() {
         }),
       });
       const data = await res.json();
+      if (res.status === 402) {
+        setCreditError({ required: data.required ?? 3, balance: data.balance ?? 0 });
+        return;
+      }
       if (!res.ok) throw new Error(data.error);
       router.push(`/interview-prep/results/${data.id}`);
     } catch (err) {
@@ -159,6 +165,13 @@ export function PrepWizard() {
   };
 
   return (
+    <>
+    <InsufficientCreditsModal
+      open={!!creditError}
+      onClose={() => setCreditError(null)}
+      tool="interview_prep"
+      balance={creditError?.balance ?? 0}
+    />
     <div className="space-y-6">
       <div className="space-y-2">
         <div className="flex justify-between text-xs text-muted-foreground">
@@ -288,5 +301,6 @@ export function PrepWizard() {
         </Card>
       )}
     </div>
+    </>
   );
 }

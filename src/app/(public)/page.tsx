@@ -428,12 +428,12 @@ export default async function LandingPage() {
                   <span className="text-4xl font-bold text-white">$29</span>
                   <span className="text-white/75 text-sm">/ per month</span>
                 </div>
-                <p className="text-sm text-white/85 mt-2">Everything you need to land your dream job.</p>
+                <p className="text-sm text-white/85 mt-2">Generous monthly allowance — enough for ~20 analyses, optimizations, or interview preps per month.</p>
               </div>
               <ul className="space-y-2 flex-1">
                 {[
-                  "Unlimited Career Analyses",
-                  "Unlimited Resume Optimizations",
+                  "All tools unlocked, resets every month",
+                  "Career Analyses & Resume Optimizations",
                   "Full Interview Prep (all 7 categories)",
                   "Career Plans (1, 3 & 6 months)",
                   "Priority Support",
